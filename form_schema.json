@@ -1,0 +1,29 @@
+{
+  "language_default": "de",
+  "sections": [
+    {
+      "key": "vg",
+      "title_i18n": "section.vg",
+      "fields": [
+        {"key": "name", "label_i18n": "vg.name", "type": "text", "required": true, "placeholder": ""},
+        {"key": "vorname", "label_i18n": "vg.vorname", "type": "text", "required": true, "placeholder": ""},
+        {"key": "geb", "label_i18n": "vg.geb", "type": "text", "required": true, "placeholder": "01.01.1990"},
+        {"key": "addr", "label_i18n": "vg.addr", "type": "textarea", "required": true, "placeholder": ""}
+      ]
+    },
+    {
+      "key": "b",
+      "title_i18n": "section.b",
+      "fields": [
+        {"key": "name", "label_i18n": "b.name", "type": "text", "required": true, "placeholder": ""},
+        {"key": "vorname", "label_i18n": "b.vorname", "type": "text", "required": true, "placeholder": ""},
+        {"key": "geb", "label_i18n": "b.geb", "type": "text", "required": true, "placeholder": ""},
+        {"key": "addr", "label_i18n": "b.addr", "type": "textarea", "required": true, "placeholder": ""}
+      ]
+    }
+  ],
+  "misc": {
+    "stadt_default": "Berlin",
+    "date_placeholder": "TT.MM.JJJJ"
+  }
+}

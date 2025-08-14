@@ -1,0 +1,6 @@
+# Add your dependencies here
+streamlit
+reportlab
+streamlit-drawable-canvas
+pillow
+numpy
