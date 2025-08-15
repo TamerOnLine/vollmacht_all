@@ -1,0 +1,52 @@
+{
+  "language_default": "de",
+  "sections": [
+    {
+      "key": "person",
+      "title_i18n": "section.person",
+      "fields": [
+        {"key": "name", "label_i18n": "person.name", "type": "text", "required": true},
+        {"key": "geb", "label_i18n": "person.geb", "type": "text", "required": true, "placeholder": "TT.MM.JJJJ"},
+        {"key": "has_relatives", "label_i18n": "person.has_relatives", "type": "checkbox", "required": false},
+        {"key": "relatives_text", "label_i18n": "person.relatives_text", "type": "text", "required": false, "placeholder": "z. B. Ehepartner, Kinder …"}
+      ]
+    },
+    {
+      "key": "erst",
+      "title_i18n": "section.erst",
+      "fields": [
+        {"key": "checked", "label_i18n": "option.checked", "type": "checkbox", "required": false},
+        {"key": "gruende", "label_i18n": "erst.gruende", "type": "textarea", "required": false}
+      ]
+    },
+    {
+      "key": "unterb",
+      "title_i18n": "section.unterb",
+      "fields": [
+        {"key": "checked", "label_i18n": "option.checked", "type": "checkbox", "required": false},
+        {"key": "gruende", "label_i18n": "unterb.gruende", "type": "textarea", "required": false}
+      ]
+    },
+    {
+      "key": "verl",
+      "title_i18n": "section.verl",
+      "fields": [
+        {"key": "checked", "label_i18n": "option.checked", "type": "checkbox", "required": false},
+        {"key": "endet_am", "label_i18n": "verl.endet_am", "type": "text", "required": false, "placeholder": "TT.MM.JJJJ"}
+      ]
+    },
+    {
+      "key": "wechsel",
+      "title_i18n": "section.wechsel",
+      "fields": [
+        {"key": "checked", "label_i18n": "option.checked", "type": "checkbox", "required": false},
+        {"key": "gruende", "label_i18n": "wechsel.gruende", "type": "textarea", "required": false}
+      ]
+    }
+  ],
+  "misc": {
+    "stadt_default": "Berlin",
+    "date_placeholder": "TT.MM.JJJJ",
+    "signature_required": true
+  }
+}

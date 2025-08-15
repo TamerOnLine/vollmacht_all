@@ -12,27 +12,23 @@ from modules.signature import (
 )
 
 def validate_required(vals, sc, i18n_dict):
-    """Validate required fields in the form schema.
-
-    Args:
-        vals (dict): Dictionary of user-provided values.
-        sc (dict): Schema defining required fields.
-        i18n_dict (dict): Dictionary of localized labels.
-
-    Returns:
-        list: Labels of missing required fields.
-    """
     errors = []
     for section in sc.get("sections", []):
         for fld in section.get("fields", []):
-            if fld.get("required"):
-                k = f'{section["key"]}_{fld["key"]}'
-                label = i18n_dict.get(fld.get("label_i18n", fld.get("key", "")), fld.get("key", ""))
-                if not (vals.get(k, "") or "").strip():
+            if not fld.get("required"):
+                continue
+            k = f'{section["key"]}_{fld["key"]}'
+            label = i18n_dict.get(fld.get("label_i18n", fld.get("key", "")), fld.get("key", ""))
+            if fld.get("type") == "checkbox":
+                if not bool(vals.get(k, False)):
+                    errors.append(label)
+            else:
+                if not (str(vals.get(k, "") or "").strip()):
                     errors.append(label)
     return errors
 
-def v(sec, key):
+
+def v(sec, key, vals):
     """Retrieve trimmed value from values dict.
 
     Args:
@@ -42,7 +38,7 @@ def v(sec, key):
     Returns:
         str: Trimmed value or empty string.
     """
-    return (values.get(f"{sec}_{key}", "") or "").strip()
+    return (vals.get(f"{sec}_{key}", "") or "").strip()
 
 def _json_read(path):
     """Read JSON file safely.
@@ -81,7 +77,7 @@ st.title(i18n.get("app.title", current.name))
 
 # Dynamic form UI
 with st.form("dynamic_form"):
-    values: dict[str, str] = {}
+    values: dict[str, object] = {}
 
     for section in schema.get("sections", []):
         st.subheader(i18n.get(section.get("title_i18n", section.get("key", "")), section.get("key", "")))
@@ -89,18 +85,31 @@ with st.form("dynamic_form"):
             label = i18n.get(fld.get("label_i18n", fld.get("key", "")), fld.get("key", ""))
             placeholder = fld.get("placeholder", "")
             key = f'{section["key"]}_{fld["key"]}'
-            if fld.get("type") == "textarea":
-                values[key] = st.text_area(label, placeholder=placeholder)
+            ftype = fld.get("type", "text")
+
+            if ftype == "textarea":
+                values[key] = st.text_area(label, placeholder=placeholder, key=key)
+            elif ftype == "checkbox":
+                values[key] = st.checkbox(label, value=False, key=key)
             else:
-                values[key] = st.text_input(label, placeholder=placeholder)
+                values[key] = st.text_input(label, placeholder=placeholder, key=key)
 
     cols = st.columns(2)
     with cols[0]:
-        stadt = st.text_input(i18n.get("field.ort", "Ort"), value=schema.get("misc", {}).get("stadt_default", "Berlin"))
+        stadt = st.text_input(
+            i18n.get("field.ort", "Ort"),
+            value=schema.get("misc", {}).get("stadt_default", "Berlin"),
+            key="stadt"
+        )
     with cols[1]:
-        datum = st.text_input(i18n.get("field.datum", "Datum"), placeholder=schema.get("misc", {}).get("date_placeholder", ""))
+        datum = st.text_input(
+            i18n.get("field.datum", "Datum"),
+            placeholder=schema.get("misc", {}).get("date_placeholder", ""),
+            key="datum"
+        )
 
     submitted = st.form_submit_button(i18n.get("btn.create", "PDF erstellen"))
+
 
 # Signature UI (optional)
 sig_required = schema.get("misc", {}).get("signature_required", True)
@@ -149,17 +158,24 @@ if submitted:
         st.error(i18n.get("validation.required", "Bitte Pflichtfelder ausfüllen.") + "\n- " + "\n- ".join(errs))
     else:
         form_data = {
-            **{k: (values.get(k, "") or "").strip() for k in values.keys()},
-            "stadt": stadt.strip(),
-            "datum": datum.strip(),
+            **{k: (values.get(k, "") if isinstance(values.get(k), bool) else (str(values.get(k, "") or "").strip()))
+            for k in values.keys()},
+            "stadt": (stadt or "").strip(),
+            "datum": (datum or "").strip(),
         }
+
         form_data.update({
-            "vg_name": v("vg", "name"), "vg_vorname": v("vg", "vorname"),
-            "vg_geb": v("vg", "geb"), "vg_addr": v("vg", "addr"),
-            "b_name": v("b", "name"), "b_vorname": v("b", "vorname"),
-            "b_geb": v("b", "geb"), "b_addr": v("b", "addr"),
-            "person_name": v("person", "name"),
-            "person_email": v("person", "email"),
+            "vg_name": v("vg", "name", values),
+            "vg_vorname": v("vg", "vorname", values),
+            "vg_geb": v("vg", "geb", values),
+            "vg_addr": v("vg", "addr", values),
+            "b_name": v("b", "name", values),
+            "b_vorname": v("b", "vorname", values),
+            "b_geb": v("b", "geb", values),
+            "b_addr": v("b", "addr", values),
+            "person_name": v("person", "name", values),
+            "person_email": v("person", "email", values),
+
         })
 
         base_opts = _json_read("setup-config.json").get("pdf_options", {})
