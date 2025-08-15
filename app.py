@@ -29,26 +29,11 @@ def validate_required(vals, sc, i18n_dict):
 
 
 def v(sec, key, vals):
-    """Retrieve trimmed value from values dict.
-
-    Args:
-        sec (str): Section key.
-        key (str): Field key.
-
-    Returns:
-        str: Trimmed value or empty string.
-    """
+    """Retrieve trimmed value from values dict."""
     return (vals.get(f"{sec}_{key}", "") or "").strip()
 
 def _json_read(path):
-    """Read JSON file safely.
-
-    Args:
-        path (str): Path to JSON file.
-
-    Returns:
-        dict: Parsed JSON content or empty dict if file not found.
-    """
+    """Read JSON file safely."""
     try:
         return json.loads(Path(path).read_text(encoding="utf-8"))
     except FileNotFoundError:
@@ -56,10 +41,10 @@ def _json_read(path):
 
 st.set_page_config(page_title="Dynamic PDF Forms", page_icon="🧾", layout="centered")
 
-# Sidebar: Language
+# Sidebar: Language (UI language only)
 lang_ui = st.sidebar.selectbox("Language / اللغة", ["de", "ar", "en"], index=0)
 
-# Discover forms
+# Discover forms with preferred UI language
 forms = discover_forms(preferred_lang=lang_ui)
 if not forms:
     st.error("No forms found. Please add folders under ./forms/<form_key>/")
@@ -70,9 +55,18 @@ form_keys = list(forms.keys())
 selected_key = st.sidebar.selectbox("Form / النموذج", form_keys, index=0)
 current = forms[selected_key]
 
+# UI i18n = user's chosen language
+ui_i18n = current.i18n
+
+# PDF i18n = ALWAYS German (fallback to UI if missing)
+try:
+    pdf_i18n = json.loads(Path(f"forms/{current.key}/i18n.de.json").read_text(encoding="utf-8"))
+except FileNotFoundError:
+    pdf_i18n = ui_i18n  # safe fallback
+
 # Current form data
 schema = current.schema
-i18n = current.i18n
+i18n = ui_i18n  # use UI language for all Streamlit text
 st.title(i18n.get("app.title", current.name))
 
 # Dynamic form UI
@@ -110,13 +104,13 @@ with st.form("dynamic_form"):
 
     submitted = st.form_submit_button(i18n.get("btn.create", "PDF erstellen"))
 
-
 # Signature UI (optional)
 sig_required = schema.get("misc", {}).get("signature_required", True)
 signature_data = None
 sig_opts = {}
 
 if sig_required:
+    # Draw/upload UI text also uses the UI language
     draw_signature_ui(i18n)
     signature_data = get_signature_bytes()
     meta = get_signature_meta()
@@ -153,7 +147,7 @@ if sig_required:
 
 # Generate PDF
 if submitted:
-    errs = validate_required(values, schema, i18n)
+    errs = validate_required(values, schema, i18n)  # validate with UI labels
     if errs:
         st.error(i18n.get("validation.required", "Bitte Pflichtfelder ausfüllen.") + "\n- " + "\n- ".join(errs))
     else:
@@ -164,6 +158,7 @@ if submitted:
             "datum": (datum or "").strip(),
         }
 
+        # convenience mapped fields (some builders expect these)
         form_data.update({
             "vg_name": v("vg", "name", values),
             "vg_vorname": v("vg", "vorname", values),
@@ -175,18 +170,19 @@ if submitted:
             "b_addr": v("b", "addr", values),
             "person_name": v("person", "name", values),
             "person_email": v("person", "email", values),
-
         })
 
         base_opts = _json_read("setup-config.json").get("pdf_options", {})
         pdf_options = {**base_opts, **sig_opts}
 
+        # IMPORTANT: PDF always in German
         pdf_bytes = current.builder.build_pdf(
             form_data,
-            i18n=current.i18n,
+            i18n=pdf_i18n,
             pdf_options=pdf_options,
             signature_bytes=signature_data
         )
+
         st.success(i18n.get("msg.created", "PDF created."))
         dl_name = i18n.get("btn.download", f"{current.key}.pdf")
         st.download_button(dl_name, data=pdf_bytes, file_name=f"{current.key}.pdf", mime="application/pdf")
