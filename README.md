@@ -1,114 +1,113 @@
-# pro_venv — Project Scaffold
+# 🧾 Dynamic PDF Forms Generator — vollmacht_all
 
-![Build](https://github.com/TamerOnLine/pro_venv/actions/workflows/test-pro_venv.yml/badge.svg)
-![Release](https://img.shields.io/github/v/release/TamerOnLine/pro_venv?style=flat-square)
-![License](https://img.shields.io/github/license/TamerOnLine/pro_venv?style=flat-square)
+![Python](https://img.shields.io/badge/Python-3.12+-blue.svg?style=flat-square)
+![Streamlit](https://img.shields.io/badge/Streamlit-UI-orange?style=flat-square)
+![ReportLab](https://img.shields.io/badge/PDF-ReportLab-green?style=flat-square)
+![License](https://img.shields.io/github/license/TamerOnLine/vollmacht_all?style=flat-square)
 
-A one‑shot Python project scaffold. It prepares the virtual environment, installs requirements, generates launch files, and configures VS Code — all from **the project root**.
+A multilingual dynamic PDF form generator with a Streamlit frontend.  
+Allows filling in data, validating required fields, digitally signing (draw or upload), and generating professionally formatted PDFs.
+
+---
+
+## ✨ Features
+- 🎯 **Supports multiple forms** — e.g., Vollmacht, Obdachlosigkeit.
+- 🌍 **Multilingual interface** (DE / AR / EN — PDF output always in German by default).
+- 🖋️ **Digital signature** — draw directly in the browser or upload a signature image with cropping and scaling options.
+- 📄 **Professional PDF creation** using [ReportLab](https://www.reportlab.com/).
+- ⚙️ **Highly customizable** — via `schema.json` and translation files `i18n.*.json`.
+- 🛠 **Automatic project setup** with `pro_venv.py` (virtual environment, requirements, VS Code, GitHub Actions).
+
+---
+
+## 📂 Project Structure
+
+```
+vollmacht_all/
+│
+├── app.py                # Streamlit frontend (main entry point)
+├── main.py               # Safe launcher that re-executes inside venv
+├── pro_venv.py           # Project and environment setup
+├── modules/              # Helper modules (form loader, signature management…)
+├── forms/                # Available forms
+│   ├── vollmacht/        # “Power of Attorney” form
+│   │   ├── schema.json
+│   │   ├── i18n.ar.json
+│   │   ├── i18n.de.json
+│   │   ├── i18n.en.json
+│   │   └── builder.py
+│   └── obdachlosigkeit/  # “Notice of Homelessness” form
+│       ├── schema.json
+│       ├── i18n.ar.json
+│       ├── i18n.de.json
+│       ├── i18n.en.json
+│       └── builder.py
+│
+├── requirements.txt
+├── setup-config.json     # Project settings & default PDF options
+└── README.md
+```
 
 ---
 
 ## 🚀 Quick Start
 
-> Run all commands from **the project root**.
+> **Step 1:** Set up the environment and configure automatically
 
 ```bash
-# first-time setup
 python pro_venv.py
+```
 
-# run your app later
+> **Step 2:** Start the application
+
+```bash
 python main.py
 ```
 
-> You don’t need to activate `venv` manually — `main.py` re-executes inside your environment automatically.
+The Streamlit interface will open in your browser (default port **8501**).  
+From the sidebar, you can select:
+- **UI language** (DE / AR / EN)
+- **Form** to fill out
+
+After filling in the form and signing, click **Create PDF** to download it.
 
 ---
 
-## ✨ What does the script do?
+## 🖋️ Adding a New Form
 
-- Creates or reads `setup-config.json` (project settings).
-- Creates `venv/` and upgrades `pip`.
-- Installs packages from `requirements.txt` (creates it if missing).
-- Generates:
-  - `main.py` (a safe launcher that re-executes inside venv, then runs your file).
-  - `app.py` (a simple starter entry point you can replace).
-  - `.vscode/settings.json`, `.vscode/launch.json`, and `project.code-workspace`.
-  - `env-info.txt` (Python version + list of installed packages).
-- (Optional) Generates a GitHub Actions workflow when using `--ci`.
+1. Create a new folder under `forms/` with a unique name (e.g., `forms/myform/`).
+2. Inside it, add:
+   - `schema.json` — defines fields and sections.
+   - `i18n.de.json` (required) + optional additional language files (`ar`, `en`, etc.).
+   - `builder.py` — Python code for PDF generation.
+3. Run the app — the form will be detected automatically.
 
 ---
 
-## 🗂️ Files & Expected Structure
+## 📦 Requirements
 
-```
-.
-├── pro_venv.py
-├── setup-config.json
-├── requirements.txt
-├── main.py
-├── app.py
-├── env-info.txt
-├── venv/
-└── .vscode/
-    ├── settings.json
-    └── launch.json
-```
+- Python 3.12+
+- Packages listed in `requirements.txt`:
+  - streamlit
+  - reportlab
+  - pillow
+  - numpy
+  - streamlit-drawable-canvas
 
 ---
 
-## ⚙️ Configuration: `setup-config.json`
-
-Default values created by the script:
-
-```json
-{
-  "project_name": "<folder-name>",
-  "main_file": "app.py",
-  "entry_point": "main.py",
-  "requirements_file": "requirements.txt",
-  "venv_dir": "venv",
-  "python_version": "3.12"
-}
-```
-
-You can edit these after generation (e.g., change the main file or the venv folder name).
-
----
-
-## 🧪 GitHub Actions Integration (Optional)
-
-To create a simple test workflow:
+## 🧪 GitHub Actions (optional)
+Create a minimal CI workflow:
 
 ```bash
 python pro_venv.py --ci create
 ```
 
-This generates: `.github/workflows/test-pro_venv.yml`.
-
-> Use `--ci force` to overwrite if the file already exists, and `--ci-python` to choose the Python version.
-
----
-
-## ❓ FAQ
-
-**Do I need to activate the environment manually?**  
-No. `main.py` re-executes inside the environment, then runs `app.py`.
-
-**Where should I run the script from?**  
-From the **project root**. If you enable the safety check at the end of the file, it blocks running from outside the root with a clear message.
-
-**Where are VS Code settings saved?**  
-Inside `.vscode/` in the project. It’s recommended to ignore these in Git because they’re local settings.
-
----
-
-## 🧰 Requirements
-
-- Python 3.12 (or as configured in `setup-config.json`).
-- Permission to create folders/files in the project root.
+This creates `.github/workflows/test-pro_venv.yml`.
 
 ---
 
 ## 📝 License
+[MIT License](LICENSE) — free to use, modify, and distribute.
 
-MIT — see `LICENSE`.
+---
